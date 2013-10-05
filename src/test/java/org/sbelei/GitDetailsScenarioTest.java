@@ -5,7 +5,9 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 
+import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -25,6 +27,7 @@ public class GitDetailsScenarioTest {
 
 	private static File temp;
 	private static File notRepo;
+	private static Repository gitRepo;
 	private static File repo;
 	
 	@BeforeClass
@@ -32,14 +35,16 @@ public class GitDetailsScenarioTest {
 		temp = createTempFolder();
 		System.out.println("[TEST] "+temp.getCanonicalPath());
 		notRepo =createSubFolder(temp,"not_repo");	
-		Repository gitRepo = createGitRepo(temp,"test_repo");
+		gitRepo = createGitRepo(temp,"test_repo");
+
 		repo = gitRepo.getWorkTree();
-		//2. add origin 'foo_bar'
-		//3. switch to branch 'branch_1'
-		//4. plugin should say that it can work with 'test_repo'
-		//5. plugin should get origin url and branch name
 	}
 	
+	/*
+	 * Given : non git folder
+	 * When  : we retrieve current branch for it
+	 * Then  : we receive "field is empty" response
+	 */
 	@Test
 	public void test01InPlainFolderGetCurrentBranch() throws Exception {
 		GitDetails gitDetails = new GitDetails();
@@ -52,12 +57,13 @@ public class GitDetailsScenarioTest {
 				NO_FLAGS);
 		
 		assertEquals(FieldValue.FT_FIELDEMPTY, responce);
-
-		
-//		assertEquals(FieldValue.FT_STRING, retrievedBranchName.getFieldType());
-//		assertEquals("", retrievedBranchName.getStr());
 	}
 
+	/*
+	 * Given : git folder
+	 * When  : we retrieve current branch for it
+	 * Then  : we receive "master"
+	 */
 	@Test
 	public void test02InGitGetCurrentBranch() throws Exception {
 		GitDetails gitDetails = new GitDetails();
@@ -73,6 +79,52 @@ public class GitDetailsScenarioTest {
 		assertEquals(FieldValue.FT_STRING, retrievedBranchName.getFieldType());
 		assertEquals("master", retrievedBranchName.getStr());
 	}
+
+	/*
+	 * Given : git folder with no remotes set
+	 * When  : we retrieve origin url
+	 * Then  : we receive "field is empty" response
+	 */
+	@Test
+	public void test03InGitGetOriginIfNotSet() throws Exception {
+		GitDetails gitDetails = new GitDetails();
+		FieldValue retrievedOriginUrl = new FieldValue();
+		int responce =gitDetails.contentGetValue(repo.getCanonicalPath(), 
+				GitDetails.FI_ORIGIN_URL, 
+				NO_UNIT_INDEX, 
+				retrievedOriginUrl, 
+				NO_MAX_LENGTH, 
+				NO_FLAGS);
+		
+		assertEquals(FieldValue.FT_FIELDEMPTY, responce);		
+	}
+
+	/*
+	 * Given : git folder with remote "origin" set
+	 * When  : we retrieve origin url
+	 * Then  : we receive "git@foobar/url" response
+	 */
+	@Test
+	public void test04InGitGetOriginIfSet() throws Exception {
+		//add remoote
+		StoredConfig config = gitRepo.getConfig();
+		config.setString("remote", "origin", "url", "git@foobar/url");
+		config.save();
+
+		GitDetails gitDetails = new GitDetails();
+		FieldValue retrievedOriginUrl = new FieldValue();
+		int responce =gitDetails.contentGetValue(repo.getCanonicalPath(), 
+				GitDetails.FI_ORIGIN_URL, 
+				NO_UNIT_INDEX, 
+				retrievedOriginUrl, 
+				NO_MAX_LENGTH, 
+				NO_FLAGS);
+		
+		assertEquals(FieldValue.FT_STRING, responce);
+		assertEquals(FieldValue.FT_STRING, retrievedOriginUrl.getFieldType());
+		assertEquals("git@foobar/url", retrievedOriginUrl.getStr());
+	}
+
 	
 	@AfterClass
 	public static void globalTearDown(){

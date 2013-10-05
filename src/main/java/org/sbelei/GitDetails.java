@@ -3,7 +3,7 @@ package org.sbelei;
 import java.io.File;
 import java.io.IOException;
 
-import org.eclipse.jgit.errors.NoWorkTreeException;
+import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
@@ -18,6 +18,7 @@ public class GitDetails extends WDXPluginAdapter {
 	static final int FI_ORIGIN_URL_TYPE = FieldValue.FT_STRING;
 	private Repository gitRepo;
 	private FileRepositoryBuilder builder = new FileRepositoryBuilder();
+	private String gitRepoFileName;
 
 	@Override
 	public int contentGetSupportedField(int fieldIndex, StringBuffer fieldName,
@@ -50,12 +51,15 @@ public class GitDetails extends WDXPluginAdapter {
 	private boolean readGitRepo(String fileName) {
 		//caching
 		try {
-			gitRepo = builder
-				.readEnvironment() // scan environment GIT_* variables
-				.findGitDir(new File(fileName)) // scan up the file system tree
-				.build(); 
+			if ((gitRepoFileName == null) || (!gitRepoFileName.equalsIgnoreCase(fileName))) {
+				gitRepo = builder
+					.readEnvironment() // scan environment GIT_* variables
+					.findGitDir(new File(fileName)) // scan up the file system tree
+					.build(); 
+				gitRepoFileName = fileName;
+			}
 		} catch (Exception e){
-			//nothing special, we will create new object
+			//nothing special, we will check later if object is created
 		}		
 		if (gitRepo == null) {
 			return false;
@@ -71,7 +75,12 @@ public class GitDetails extends WDXPluginAdapter {
 		if (!readGitRepo(fileName)) {
 			return FieldValue.FT_FIELDEMPTY;
 		}
-		fieldValue.setValue(FI_ORIGIN_URL_TYPE, "");
+		Config config = gitRepo.getConfig();
+		String url = config.getString("remote", "origin", "url");
+		if (url == null) {
+			return FieldValue.FT_FIELDEMPTY;
+		}
+		fieldValue.setValue(FI_ORIGIN_URL_TYPE, url);
 		return FI_ORIGIN_URL_TYPE;
 	}
 
