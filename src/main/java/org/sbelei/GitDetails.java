@@ -17,7 +17,7 @@ public class GitDetails extends WDXPluginAdapter {
 	static final int FI_ORIGIN_URL = 1;
 	static final int FI_ORIGIN_URL_TYPE = FieldValue.FT_STRING;
 	private Repository gitRepo;
-	
+	private FileRepositoryBuilder builder = new FileRepositoryBuilder();
 
 	@Override
 	public int contentGetSupportedField(int fieldIndex, StringBuffer fieldName,
@@ -50,12 +50,10 @@ public class GitDetails extends WDXPluginAdapter {
 	private boolean readGitRepo(String fileName) {
 		//caching
 		try {
-			if (!((gitRepo != null) && 
-				(fileName !=null) && 
-				(fileName.equalsIgnoreCase(gitRepo.getWorkTree().getCanonicalPath())))) {
-
-				gitRepo = FileRepositoryBuilder.create(new File(fileName)); 
-			}
+			gitRepo = builder
+				.readEnvironment() // scan environment GIT_* variables
+				.findGitDir(new File(fileName)) // scan up the file system tree
+				.build(); 
 		} catch (Exception e){
 			//nothing special, we will create new object
 		}		
