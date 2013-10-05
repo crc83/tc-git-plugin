@@ -27,6 +27,13 @@
 			<artifactId>org.eclipse.jgit</artifactId>
 			<version>0.9.3</version>
 		</dependency>
+		<dependency>
+		    <groupId>com.ghisler</groupId>
+		    <artifactId>tc-apis</artifactId>
+		    <version>1.7</version>
+		    <scope>system</scope>
+		    <systemPath>${basedir}/lib/tc-apis-1.7.jar</systemPath>
+		</dependency>
 	</dependencies>
 
 </project>
