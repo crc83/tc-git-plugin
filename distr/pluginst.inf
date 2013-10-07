@@ -1,7 +1,5 @@
 [plugininstall] 
-description=Demo Content Plugin
-descriptiondeu=Demo Inhaltsplugin
-descriptionrus=Demo Content Plugin
+description=Git details Plugin
 type=wdx 
 file=GitDetails.wdx 
 defaultdir=GitDetails

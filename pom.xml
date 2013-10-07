@@ -4,10 +4,10 @@
 
 	<groupId>org.sbelei</groupId>
 	<artifactId>gitdetails</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0</version>
 	<packaging>jar</packaging>
 
-	<name>gitdetails</name>
+	<name>GitDetails</name>
 	<scm>
 		<connection>https://github.com/crc83/tc-git-plugin.git</connection>
 		<developerConnection>git@github.com:crc83/tc-git-plugin.git</developerConnection>
@@ -44,7 +44,7 @@
 			<artifactId>tc-apis</artifactId>
 			<version>1.7</version>
 			<scope>system</scope>
-			<systemPath>${basedir}/lib/tc-apis-1.7.jar</systemPath>
+			<systemPath>${basedir}/distr/tc-apis-1.7.jar</systemPath>
 		</dependency>
 	</dependencies>
 
@@ -57,6 +57,13 @@
 				<configuration>
 					<source>1.5</source>
 					<target>1.5</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<descriptor>src/main/assembly/dep.xml</descriptor>
 				</configuration>
 			</plugin>
 		</plugins>
