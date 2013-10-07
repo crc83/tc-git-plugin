@@ -3,7 +3,15 @@ package org.sbelei;
 import java.io.File;
 import java.io.IOException;
 
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.CheckoutConflictException;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRefNameException;
+import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
+import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 public class TestHelper {
@@ -53,14 +61,25 @@ public class TestHelper {
 		folder.delete();
 	}
 
-	public static Repository createGitRepo(File temp, String repoName) throws IOException {
+	public static File createGitRepo(File temp, String repoName, String originUrl, String currentBranch) throws Exception {
 		// prepare a new folder
 		createSubFolder(temp, repoName);
 		// create the directory
 		Repository repository = FileRepositoryBuilder.create(new File(createSubFolder(temp, repoName), ".git"));
 		repository.create();
 
-		return repository;
+		Git git = Git.wrap(repository);
+		git.commit().setMessage("initial commit").call();
+		git.checkout()
+			.setCreateBranch(true)
+			.setName(currentBranch).call();
+		//add remoote
+		if (originUrl != null) {
+			StoredConfig config = repository.getConfig();
+			config.setString("remote", "origin", "url", originUrl);
+			config.save();
+		}
+		return repository.getWorkTree();
 
 	}
 

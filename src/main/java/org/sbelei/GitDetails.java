@@ -3,6 +3,8 @@ package org.sbelei;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
@@ -12,12 +14,16 @@ import plugins.wdx.WDXPluginAdapter;
 
 public class GitDetails extends WDXPluginAdapter {
 	
+	/**
+	 * the logging support.
+	 */
+	private Log log = LogFactory.getLog(GitDetails.class);
+	
 	static final int FI_BRANCH = 0;
 	static final int FI_BRANCH_TYPE = FieldValue.FT_STRING;
 	static final int FI_ORIGIN_URL = 1;
 	static final int FI_ORIGIN_URL_TYPE = FieldValue.FT_STRING;
 	private Repository gitRepo;
-	private FileRepositoryBuilder builder = new FileRepositoryBuilder();
 	private String gitRepoFileName;
 
 	@Override
@@ -52,11 +58,13 @@ public class GitDetails extends WDXPluginAdapter {
 		//caching
 		try {
 			if ((gitRepoFileName == null) || (!gitRepoFileName.equalsIgnoreCase(fileName))) {
-				gitRepo = builder
+				gitRepo = new FileRepositoryBuilder()
 					.readEnvironment() // scan environment GIT_* variables
 					.findGitDir(new File(fileName)) // scan up the file system tree
+					.addCeilingDirectory(new File(fileName))
 					.build(); 
 				gitRepoFileName = fileName;
+				log.debug("[G]"+fileName+" || "+gitRepo.getWorkTree());
 			}
 		} catch (Exception e){
 			//nothing special, we will check later if object is created
@@ -102,10 +110,13 @@ public class GitDetails extends WDXPluginAdapter {
 	private boolean hasDotGitSubfolder(String fileName) {
         File [] fileNames;
         File file=new File(fileName);
-        if(file.isDirectory()){
+        if((file!=null) && file.isDirectory()){
             fileNames= file.listFiles();
+            if (fileNames == null) {
+            	return false;
+            }
             for(File temp:fileNames){
-                if (".git".equals(temp.getName())) {
+                if ((temp!=null) &&".git".equals(temp.getName())) {
                 	return true;
                 }
             }
