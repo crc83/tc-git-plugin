@@ -63,6 +63,9 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.4</version>
 				<configuration>
+					<appendAssemblyId>false</appendAssemblyId>
+					<outputDirectory>binary</outputDirectory>
+					<finalName>${project.name}-${project.version}</finalName>
 					<descriptor>src/main/assembly/dep.xml</descriptor>
 				</configuration>
 			</plugin>
