@@ -23,6 +23,9 @@ public class GitDetails extends WDXPluginAdapter {
 	static final int FI_BRANCH_TYPE = FieldValue.FT_STRING;
 	static final int FI_ORIGIN_URL = 1;
 	static final int FI_ORIGIN_URL_TYPE = FieldValue.FT_STRING;
+	static final int FI_UPSTREAM_URL = 2;
+	static final int FI_UPSTREAM_URL_TYPE = FieldValue.FT_STRING;
+
 	private Repository gitRepo;
 	private String gitRepoFileName;
 
@@ -36,6 +39,9 @@ public class GitDetails extends WDXPluginAdapter {
 		case FI_ORIGIN_URL:
 			fieldName.append("origin url");
 			return FI_ORIGIN_URL_TYPE;
+		case FI_UPSTREAM_URL:
+			fieldName.append("upstream url");
+			return FI_UPSTREAM_URL_TYPE;
 		default:
 			return FieldValue.FT_NOMOREFIELDS;		
 		}
@@ -49,6 +55,8 @@ public class GitDetails extends WDXPluginAdapter {
 			return getCurrentBranchName(fileName, fieldValue);
 		case FI_ORIGIN_URL:
 			return getOriginUrl(fileName, fieldValue);
+		case FI_UPSTREAM_URL:
+			return getUpstreamUrl(fileName, fieldValue);
 		default:
 			return FieldValue.FT_NOMOREFIELDS;
 		}
@@ -77,6 +85,15 @@ public class GitDetails extends WDXPluginAdapter {
 	}
 
 	private int getOriginUrl(String fileName, FieldValue fieldValue) {
+		return getRemooteUrl("origin", fileName, fieldValue);
+	}
+	
+	private int getUpstreamUrl(String fileName, FieldValue fieldValue) {
+		return getRemooteUrl("upstream", fileName, fieldValue);
+	}
+
+	
+	private int getRemooteUrl(String remooteName, String fileName, FieldValue fieldValue) {
 		if (!hasDotGitSubfolder(fileName)) {
 			return FieldValue.FT_FIELDEMPTY;
 		}
@@ -84,12 +101,13 @@ public class GitDetails extends WDXPluginAdapter {
 			return FieldValue.FT_FIELDEMPTY;
 		}
 		Config config = gitRepo.getConfig();
-		String url = config.getString("remote", "origin", "url");
+		String url = config.getString("remote", remooteName, "url");
 		if (url == null) {
 			return FieldValue.FT_FIELDEMPTY;
 		}
 		fieldValue.setValue(FI_ORIGIN_URL_TYPE, url);
 		return FI_ORIGIN_URL_TYPE;
+		
 	}
 
 	private int getCurrentBranchName(String fileName, FieldValue fieldValue) {
