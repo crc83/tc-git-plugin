@@ -75,7 +75,8 @@ public class GitDetails extends WDXPluginAdapter {
 				log.debug("[G]"+fileName+" || "+gitRepo.getWorkTree());
 			}
 		} catch (Exception e){
-			//nothing special, we will check later if object is created
+			log.error("Error during creation of repo object:"+e.getMessage());
+			log.error(e.getStackTrace().toString());
 		}		
 		if (gitRepo == null) {
 			return false;
