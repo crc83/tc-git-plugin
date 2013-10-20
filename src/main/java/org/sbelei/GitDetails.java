@@ -1,12 +1,16 @@
 package org.sbelei;
 
+import static org.sbelei.Column.*;
+
 import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Config;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 import plugins.wdx.FieldValue;
@@ -20,31 +24,22 @@ public class GitDetails extends WDXPluginAdapter {
 	private Log log = LogFactory.getLog(GitDetails.class);
 	
 	static final int FI_BRANCH = 0;
-	static final int FI_BRANCH_TYPE = FieldValue.FT_STRING;
 	static final int FI_ORIGIN_URL = 1;
-	static final int FI_ORIGIN_URL_TYPE = FieldValue.FT_STRING;
 	static final int FI_UPSTREAM_URL = 2;
-	static final int FI_UPSTREAM_URL_TYPE = FieldValue.FT_STRING;
-
-	private Repository gitRepo;
+	
+	private FileRepository gitRepo;
 	private String gitRepoFileName;
 
 	@Override
 	public int contentGetSupportedField(int fieldIndex, StringBuffer fieldName,
 			StringBuffer units, int maxlen) {
-		switch (fieldIndex) {
-		case FI_BRANCH: 
-			fieldName.append("branch name");
-			return FI_BRANCH_TYPE;
-		case FI_ORIGIN_URL:
-			fieldName.append("origin url");
-			return FI_ORIGIN_URL_TYPE;
-		case FI_UPSTREAM_URL:
-			fieldName.append("upstream url");
-			return FI_UPSTREAM_URL_TYPE;
-		default:
-			return FieldValue.FT_NOMOREFIELDS;		
+		for (Column column : Column.values()) {
+			if (fieldIndex == column.id()) {
+				fieldName.append(column.title());
+				return column.type();
+			}
 		}
+		return FieldValue.FT_NOMOREFIELDS;
 	}
 
 	@Override
@@ -66,7 +61,7 @@ public class GitDetails extends WDXPluginAdapter {
 		//caching
 		try {
 			if ((gitRepoFileName == null) || (!gitRepoFileName.equalsIgnoreCase(fileName))) {
-				gitRepo = new FileRepositoryBuilder()
+				gitRepo = (FileRepository) new FileRepositoryBuilder()
 					.readEnvironment() // scan environment GIT_* variables
 					.findGitDir(new File(fileName)) // scan up the file system tree
 					.addCeilingDirectory(new File(fileName))
@@ -82,6 +77,18 @@ public class GitDetails extends WDXPluginAdapter {
 			return false;
 		} else {
 			return true;
+		}
+	}
+	
+	private int getLastCommitMessage(String fileName, FieldValue fieldValue) {
+		try {
+			Iterable<RevCommit> commitList = Git.open(new File(fileName)).log().setMaxCount(1).call();
+			RevCommit commit = commitList.iterator().next();
+			return 0;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return 0;
 		}
 	}
 
@@ -106,8 +113,8 @@ public class GitDetails extends WDXPluginAdapter {
 		if (url == null) {
 			return FieldValue.FT_FIELDEMPTY;
 		}
-		fieldValue.setValue(FI_ORIGIN_URL_TYPE, url);
-		return FI_ORIGIN_URL_TYPE;
+		fieldValue.setValue(ORIGIN_URL.type(), url);
+		return ORIGIN_URL.type();
 		
 	}
 
@@ -119,11 +126,11 @@ public class GitDetails extends WDXPluginAdapter {
 			return FieldValue.FT_FIELDEMPTY;
 		}
 		try {
-			fieldValue.setValue(FI_BRANCH_TYPE, gitRepo.getBranch());
+			fieldValue.setValue(BRANCH_NAME.type(), gitRepo.getBranch());
 		} catch (IOException e) {
 			return FieldValue.FT_FIELDEMPTY;
 		}
-		return FI_BRANCH_TYPE;
+		return BRANCH_NAME.type();
 	}
 
 	private boolean hasDotGitSubfolder(String fileName) {

@@ -164,7 +164,7 @@ public class GitDetailsScenarioTest {
 	
 	@AfterClass
 	public static void globalTearDown(){
-		deleteFolder(temp);		
+//		deleteFolder(temp);		
 	}
 
 

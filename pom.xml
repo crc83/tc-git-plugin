@@ -4,7 +4,7 @@
 
 	<groupId>org.sbelei</groupId>
 	<artifactId>gitdetails</artifactId>
-	<version>1.0</version>
+	<version>1.1</version>
 	<packaging>jar</packaging>
 
 	<name>GitDetails</name>
@@ -26,6 +26,11 @@
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
 			<version>3.1.0.201310021548-r</version>
+		</dependency>
+		<dependency>
+			<groupId>org.gitective</groupId>
+			<artifactId>gitective-core</artifactId>
+			<version>0.9.9</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
