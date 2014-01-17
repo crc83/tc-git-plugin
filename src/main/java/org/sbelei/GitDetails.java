@@ -134,20 +134,7 @@ public class GitDetails extends WDXPluginAdapter {
 	}
 
 	private boolean hasDotGitSubfolder(String fileName) {
-        File [] fileNames;
-        File file=new File(fileName);
-        if((file!=null) && file.isDirectory()){
-            fileNames= file.listFiles();
-            if (fileNames == null) {
-            	return false;
-            }
-            for(File temp:fileNames){
-                if ((temp!=null) &&".git".equals(temp.getName())) {
-                	return true;
-                }
-            }
-        }
-		return false;
+		return new File(fileName, ".git").isDirectory();
 	}
 
 }
